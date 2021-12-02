@@ -7,17 +7,17 @@ User = get_user_model()
 
 class Group(models.Model):
     title = models.CharField(
+        'Название группы',
         max_length=200,
-        verbose_name='Название группы',
         help_text='Название новой группы'
     )
     slug = models.SlugField(
+        'Адрес группы',
         unique=True,
-        verbose_name='Адрес группы',
         help_text='Адрес новой группы'
     )
     description = models.TextField(
-        verbose_name='Описание группы',
+        'Описание группы',
         help_text='Описание новой группы'
     )
 
@@ -27,12 +27,12 @@ class Group(models.Model):
 
 class Post(models.Model):
     text = models.TextField(
-        verbose_name='Текст поста',
+        'Текст поста',
         help_text='Текст нового поста'
     )
     pub_date = models.DateTimeField(
+        'Дата публикации',
         auto_now_add=True,
-        verbose_name='Дата публикации',
         help_text='Дата публикации нового поста'
     )
     author = models.ForeignKey(
@@ -47,8 +47,8 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='posts',
         verbose_name='Группа',
+        related_name='posts',
         help_text='Группа, к которой будет относиться пост'
     )
     image = models.ImageField(
@@ -71,8 +71,8 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name='comments',
         verbose_name='Комментарий',
+        related_name='comments',
         help_text='Комментарий к посту'
     )
     author = models.ForeignKey(
@@ -83,14 +83,17 @@ class Comment(models.Model):
         help_text='Автор нового поста'
     )
     text = models.TextField(
-        verbose_name='Текст комментария',
+        'Текст комментария',
         help_text='Текст комментария поста'
     )
     created = models.DateTimeField(
+        'Дата комментария',
         auto_now_add=True,
-        verbose_name='Дата комментария',
         help_text='Дата комментария поста'
     )
+
+    def __str__(self):
+        return self.text[:15]
 
 
 class Follow(models.Model):
@@ -108,3 +111,14 @@ class Follow(models.Model):
         verbose_name='Автор для подписки',
         help_text='Пользователь, которого подписываются'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_follow'
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.author}'

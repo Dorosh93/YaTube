@@ -32,7 +32,6 @@ class CreatePostTest(TestCase):
             text='Тестовый текст длинный',
         )
         cls.form = PostForm()
-        cls.form_comm = CommentForm()
 
     @classmethod
     def tearDownClass(cls):
@@ -92,13 +91,27 @@ class CreatePostTest(TestCase):
             ).exists()
         )
 
+
+class CreateCommentTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.author = Client()
+        cls.author.force_login(cls.user)
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Тестовый текст длинный',
+        )
+        cls.form_comm = CommentForm()
+
     def test_comment_add(self):
         post = get_object_or_404(Post, pk=1)
         comment_count = post.comments.count()
         comment_text = {
             'text': 'Комментарий',
         }
-        response = CreatePostTest.author.post(
+        response = CreateCommentTest.author.post(
             reverse('posts:add_comment', kwargs={'post_id': '1'}),
             data=comment_text,
             follow=True

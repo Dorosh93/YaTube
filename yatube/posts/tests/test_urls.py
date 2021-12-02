@@ -38,6 +38,9 @@ class PostURLTest(TestCase):
             '/create/': HTTPStatus.FOUND,
             '/posts/1/edit/': HTTPStatus.FOUND,
             '/posts/1/comment/': HTTPStatus.FOUND,
+            '/follow/': HTTPStatus.FOUND,
+            '/profile/auth/follow/': HTTPStatus.FOUND,
+            '/profile/auth/unfollow/': HTTPStatus.FOUND,
         }
         for url, status in pages_status.items():
             with self.subTest(url=url):
@@ -47,6 +50,10 @@ class PostURLTest(TestCase):
             '/create/': '/auth/login/?next=/create/',
             '/posts/1/edit/': '/posts/1/',
             '/posts/1/comment/': '/auth/login/?next=/posts/1/comment/',
+            '/follow/': '/auth/login/?next=/follow/',
+            '/profile/auth/follow/': '/auth/login/?next=/profile/auth/follow/',
+            '/profile/auth/unfollow/': (
+                '/auth/login/?next=/profile/auth/unfollow/'),
         }
         for url, redirect in pages_redirect.items():
             with self.subTest(url=url):
@@ -58,11 +65,22 @@ class PostURLTest(TestCase):
         pages_status = {
             '/create/': HTTPStatus.OK,
             '/posts/1/edit/': HTTPStatus.OK,
+            '/follow/': HTTPStatus.OK,
+            '/profile/auth2/follow/': HTTPStatus.FOUND,
+            '/profile/auth2/unfollow/': HTTPStatus.FOUND,
         }
         for url, status in pages_status.items():
             with self.subTest(url=url):
                 response = PostURLTest.author_client.get(url)
                 self.assertEqual(response.status_code, status)
+        pages_redirect = {
+            '/profile/auth2/follow/': '/profile/auth2/',
+            '/profile/auth2/unfollow/': '/profile/auth2/',
+        }
+        for url, redirect in pages_redirect.items():
+            with self.subTest(url=url):
+                response = self.author_client.get(url, follow=True)
+                self.assertRedirects(response, redirect)
 
     def test_url_not_author(self):
         """"Доступ к посту для другого пользователя"""
@@ -79,6 +97,7 @@ class PostURLTest(TestCase):
             '/create/': 'posts/create_post.html',
             '/posts/1/edit/': 'posts/create_post.html',
             '/none/': 'core/404.html',
+            '/follow/': 'posts/follow.html',
         }
         for url, template in pages_names.items():
             with self.subTest(url=url):

@@ -7,7 +7,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from ..models import Group, Post, Comment
+from django.core.cache import cache
+from ..models import Group, Post, Comment, Follow
 
 User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -64,8 +65,8 @@ class PostViewsTest(TestCase):
         )
         cls.comment = Comment.objects.create(
             post=get_object_or_404(Post, pk=1),
-            author=cls.user,
-            text='Комментарий',
+            author=cls.user2,
+            text='Комментарий первого поста',
         )
 
     @classmethod
@@ -132,8 +133,11 @@ class PostViewsTest(TestCase):
         object_1 = response.context['post']
         post_count = response.context['count_post']
         post_title_1 = response.context['title_post']
+        comments = response.context['comments']
         self.assertEqual(post_count, 2)
         self.assertEqual(post_title_1, 'Тестовый текст ')
+        self.assertEqual(comments[0].text, 'Комментарий первого поста')
+        self.assertEqual(comments[0].author, PostViewsTest.user2)
         post = get_object_or_404(Post, pk=1)
         self.compare_post(object_1, post)
 
@@ -197,3 +201,60 @@ class PaginatorViewsTest(TestCase):
             'posts:group_posts', kwargs={'slug': 'testovyij-slag'})
             + '?page=2')
         self.assertEqual(len(response.context['page_obj']), 1)
+
+
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.author_client = Client()
+        cls.author_client.force_login(cls.user)
+        cls.user2 = User.objects.create_user(username='auth2')
+        cls.author_client2 = Client()
+        cls.author_client2.force_login(cls.user2)
+        cls.user3 = User.objects.create_user(username='auth3')
+        cls.author_client3 = Client()
+        cls.author_client3.force_login(cls.user3)
+        cls.follow = Follow.objects.create(
+            user=cls.user,
+            author=cls.user2,
+        )
+        cls.follow2 = Follow.objects.create(
+            user=cls.user2,
+            author=cls.user3,
+        )
+        cls.post = Post.objects.create(
+            author=cls.user2,
+            text='Тестовый текст второго автора',
+        )
+        cls.post2 = Post.objects.create(
+            author=cls.user3,
+            text='Тестовый текст третьего автора',
+        )
+
+    def test_follow(self):
+        cache.clear()
+        post = Post.objects.create(
+            author=FollowTest.user3,
+            text='Тестовый текст нового поста',
+        )
+        response_user1 = FollowTest.author_client.get(
+            reverse('posts:follow_index')).content
+        self.assertNotIn(post.text, response_user1.decode())
+        cache.clear()
+        response_user2 = FollowTest.author_client2.get(
+            reverse('posts:follow_index')).content
+        self.assertIn(post.text, response_user2.decode())
+        cache.clear()
+        FollowTest.author_client.post(reverse(
+            'posts:profile_follow', kwargs={'username': 'auth3'}))
+        response2_user1 = FollowTest.author_client.get(
+            reverse('posts:follow_index')).content
+        self.assertIn(post.text, response2_user1.decode())
+        cache.clear()
+        FollowTest.author_client.post(reverse(
+            'posts:profile_unfollow', kwargs={'username': 'auth3'}))
+        response3_user1 = FollowTest.author_client.get(
+            reverse('posts:follow_index')).content
+        self.assertNotIn(post.text, response3_user1.decode())

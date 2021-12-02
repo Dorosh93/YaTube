@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
 from django.core.cache import cache
+from django.urls import reverse
 from ..models import Post
 
 User = get_user_model()
@@ -17,10 +18,10 @@ class Test(TestCase):
             author=user,
             text='Тестовый текст',
         )
-        author_client.get('/').content
+        author_client.get(reverse('posts:index')).content
         post.delete()
-        response2 = author_client.get('/').content
+        response2 = author_client.get(reverse('posts:index')).content
         self.assertIn(post.text, response2.decode())
         cache.clear()
-        response3 = author_client.get('/').content
+        response3 = author_client.get(reverse('posts:index')).content
         self.assertNotIn(post.text, response3.decode())
