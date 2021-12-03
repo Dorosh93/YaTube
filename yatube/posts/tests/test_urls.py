@@ -48,7 +48,7 @@ class PostURLTest(TestCase):
                 self.assertEqual(response.status_code, status)
         pages_redirect = {
             '/create/': '/auth/login/?next=/create/',
-            '/posts/1/edit/': '/posts/1/',
+            '/posts/1/edit/': '/auth/login/?next=/posts/1/edit/',
             '/posts/1/comment/': '/auth/login/?next=/posts/1/comment/',
             '/follow/': '/auth/login/?next=/follow/',
             '/profile/auth/follow/': '/auth/login/?next=/profile/auth/follow/',
