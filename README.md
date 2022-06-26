@@ -14,17 +14,17 @@ Python 3.9, Django 2.2 LTS, Django ORM, SQLite3, pytest, HTML, CSS, DOM, bootstr
 ## Как запустить проект:
 - Клонировать репозиторий и перейти в него в командной строке:
 ```
-git clone https://github.com/Dorosh93/Project_YaTube.git
+git clone https://github.com/Dorosh93/YaTube.git
 ```
 ```
-cd project_yatube
+cd yatube
 ```
 Cоздать и активировать виртуальное окружение:
 ```
 py -m venv venv
 ```
 ```
-source venv/scripts/activate
+source venv/bin/activate
 ```
 Установить зависимости из файла requirements.txt:
 ```
