@@ -9,7 +9,7 @@
 
 # Используемые технологии
 
-Python 3.9, Django 2.2 LTS, Django ORM, SQLite3, pytest, HTML, CSS, DOM, bootstrap, CSRF, Paginator, Unittest
+Python 3.9, Django 2.2 LTS, Django ORM, SQLite3, pytest, HTML, CSRF, Paginator, Unittest
 
 ## Как запустить проект:
 - Клонировать репозиторий и перейти в него в командной строке:
